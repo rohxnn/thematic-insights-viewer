@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Presentation, Layers, Activity, Sun, Moon } from 'lucide-react';
+import { Presentation, Layers, Activity, Gauge, Sun, Moon } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const [theme, setTheme] = useState('dark');
@@ -16,6 +16,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     { id: 'presentation', label: 'Slide Deck', icon: Presentation },
     { id: 'visualizations', label: 'Visualization Hub', icon: Layers },
     { id: 'playground', label: 'Comparison Playground', icon: Activity },
+    { id: 'smart-dashboard', label: 'Smart Dashboard', icon: Gauge },
   ];
 
   return (

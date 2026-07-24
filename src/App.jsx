@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import PresentationPage from './pages/PresentationPage';
 import VisualizationHub from './pages/VisualizationHub';
 import ComparisonPlayground from './pages/ComparisonPlayground';
+import SmartDashboard from './pages/SmartDashboard';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizations');
@@ -15,6 +16,8 @@ export default function App() {
         return <VisualizationHub />;
       case 'playground':
         return <ComparisonPlayground />;
+      case 'smart-dashboard':
+        return <SmartDashboard />;
       default:
         return <PresentationPage />;
     }
