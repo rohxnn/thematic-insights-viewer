@@ -370,7 +370,7 @@ export default function SmartDashboard() {
           {/* Big Numbers */}
           <div className="metrics-grid">
             <div className="metric-card">
-              <span className="metric-label">Total Objectives</span>
+              <span className="metric-label">Total Challenges</span>
               <span className="metric-value">{stats.total.toLocaleString()}</span>
             </div>
             <div className="metric-card accent">
@@ -422,7 +422,7 @@ export default function SmartDashboard() {
                       {formatCompact(donutTotal)}
                     </text>
                     <text x="100" y="113" textAnchor="middle" className="sd-donut-center-label">
-                      objectives
+                      {donutTotal === 1 ? 'challenge' : 'challenges'}
                     </text>
                   </svg>
                   {hoveredSlice && (() => {
@@ -482,7 +482,7 @@ export default function SmartDashboard() {
           <div className="glass-panel sd-chart-card">
             <div className="panel-header">
               <BarChart3 size={18} />
-              <h3>Top Districts by Objective Count</h3>
+              <h3>Top Districts by Challenge Count</h3>
             </div>
             <div className="sd-bar-chart">
               {stats.districtRanked.map((d) => (
@@ -538,7 +538,7 @@ export default function SmartDashboard() {
                   <summary>View monthly data table</summary>
                   <table className="themes-table sd-trend-table">
                     <thead>
-                      <tr><th>Month</th><th>Objectives</th></tr>
+                      <tr><th>Month</th><th>Challenges</th></tr>
                     </thead>
                     <tbody>
                       {stats.trendMonths.map((m) => (
@@ -567,7 +567,7 @@ export default function SmartDashboard() {
                       className="sd-sortable-th"
                       onClick={() => setTableSortAsc((v) => !v)}
                     >
-                      Total Objectives {tableSortAsc ? '▲' : '▼'}
+                      Total Challenges {tableSortAsc ? '▲' : '▼'}
                     </th>
                     <th>Distinct Themes</th>
                     <th>Top Theme</th>
@@ -584,7 +584,9 @@ export default function SmartDashboard() {
                       <td>
                         <div className="theme-table-cell">
                           <span className="theme-cell-title">{row.topThemeName}</span>
-                          <span className="theme-cell-desc">{row.topThemeCount.toLocaleString()} objectives</span>
+                          <span className="theme-cell-desc">
+                            {row.topThemeCount.toLocaleString()} {row.topThemeCount === 1 ? 'challenge' : 'challenges'}
+                          </span>
                         </div>
                       </td>
                       <td>{row.approvedPct}%</td>
@@ -683,7 +685,7 @@ export default function SmartDashboard() {
         }
 
         .sd-select, .sd-range-inputs input {
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--bg-card);
           border: 1px solid var(--border-color);
           color: var(--text-primary);
           padding: 0.6rem 0.9rem;
@@ -692,6 +694,16 @@ export default function SmartDashboard() {
           font-family: var(--font-sans);
           outline: none;
           transition: all var(--transition-speed);
+        }
+
+        .sd-select option {
+          background-color: #0d142b;
+          color: #f8fafc;
+        }
+
+        [data-theme='light'] .sd-select option {
+          background-color: #ffffff;
+          color: #0f172a;
         }
 
         .sd-select:focus, .sd-range-inputs input:focus {

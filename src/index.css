@@ -372,6 +372,17 @@ p {
   to { transform: rotate(360deg); }
 }
 
+/* --- Global Select & Option Dropdown Styling --- */
+select option {
+  background-color: #0d142b;
+  color: #f8fafc;
+}
+
+[data-theme='light'] select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
 /* --- Animations --- */
 .fade-in-slide {
   animation: fadeInSlide 0.4s ease-out forwards;
@@ -387,3 +398,4 @@ p {
     transform: translateY(0);
   }
 }
+
