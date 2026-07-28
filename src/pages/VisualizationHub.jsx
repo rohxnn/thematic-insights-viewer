@@ -177,6 +177,16 @@ export default function VisualizationHub() {
         });
       }
     });
+    // Sort statements in descending order of match score (highest score first)
+    rows.sort((a, b) => {
+      if (a.score !== null && b.score !== null) {
+        return b.score - a.score;
+      }
+      if (a.score !== null) return -1;
+      if (b.score !== null) return 1;
+      return 0;
+    });
+
     return rows;
   };
   const totalThemesCount = csvData.length;

@@ -4,10 +4,8 @@ import {
   BarChart3, Table as TableIcon, Info, RefreshCw,
 } from 'lucide-react';
 
-// Themes ranked by row count in the active filter; the top N get a real
-// categorical color, the rest fold into a neutral "Other" slice — keeps the
-// donut within the ~6-segment part-to-whole limit instead of 76 slivers.
-const TOP_THEME_COUNT = 6;
+// Show all 9 approved themes individually; draft/other themes fold into "Other themes"
+const TOP_THEME_COUNT = 9;
 
 // Trend chart window: >99% of parsed dates land in 2024-2026; a long tail of
 // clearly mistyped dates (as early as 1997) would blow out the axis for <1%
@@ -136,11 +134,20 @@ export default function SmartDashboard() {
     let datedCount = 0;
 
     const districtDetailMap = new Map();
+    const themeDistrictMap = new Map();
 
     rows.forEach(([themeIdx, districtIdx, , iso, sid, score]) => {
       if (sid != null) discussionSet.add(sid);
       themeCounts.set(themeIdx, (themeCounts.get(themeIdx) || 0) + 1);
       districtCounts.set(districtIdx, (districtCounts.get(districtIdx) || 0) + 1);
+
+      let tDistMap = themeDistrictMap.get(themeIdx);
+      if (!tDistMap) {
+        tDistMap = new Map();
+        themeDistrictMap.set(themeIdx, tDistMap);
+      }
+      tDistMap.set(districtIdx, (tDistMap.get(districtIdx) || 0) + 1);
+
       const isApproved = data.themeStatus[themeIdx] === 'Approved';
       if (isApproved) approvedCount++;
       if (score != null) { scoreSum += score; scoreCount++; }
@@ -163,7 +170,25 @@ export default function SmartDashboard() {
     });
 
     const themeRanked = Array.from(themeCounts.entries())
-      .map(([idx, count]) => ({ idx, name: data.themes[idx], status: data.themeStatus[idx], count }))
+      .map(([idx, count]) => {
+        const tDistMap = themeDistrictMap.get(idx) || new Map();
+        const top5Districts = Array.from(tDistMap.entries())
+          .map(([dIdx, dCount]) => ({
+            districtName: titleCase(data.districts[dIdx]),
+            stateName: titleCase(data.states[districtStateIdx[dIdx]]),
+            count: dCount,
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+
+        return {
+          idx,
+          name: data.themes[idx],
+          status: data.themeStatus[idx],
+          count,
+          top5Districts,
+        };
+      })
       .sort((a, b) => b.count - a.count);
 
     const topThemes = themeRanked.slice(0, TOP_THEME_COUNT);
@@ -478,6 +503,37 @@ export default function SmartDashboard() {
             </div>
           </div>
 
+          {/* Top 5 Districts per Approved Theme Grid */}
+          <div className="glass-panel sd-chart-card">
+            <div className="panel-header">
+              <MapPin size={18} />
+              <h3>Top 5 Districts for Approved Themes</h3>
+            </div>
+            <div className="sd-approved-themes-dist-grid">
+              {stats.topThemes.map((theme) => (
+                <div key={theme.idx} className="sd-theme-dist-card">
+                  <div className="sd-theme-card-header">
+                    <span className="sd-theme-card-title">{theme.name}</span>
+                    <span className="badge badge-approved">{theme.count.toLocaleString()} challenges</span>
+                  </div>
+                  <div className="sd-theme-card-districts">
+                    {theme.top5Districts && theme.top5Districts.length > 0 ? (
+                      theme.top5Districts.map((d, dIdx) => (
+                        <div key={dIdx} className="sd-dist-rank-row">
+                          <span className="sd-dist-rank-num">#{dIdx + 1}</span>
+                          <span className="sd-dist-rank-name">{d.districtName} <small>({d.stateName})</small></span>
+                          <span className="sd-dist-rank-count">{d.count.toLocaleString()}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="no-results">No district data</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Top Districts Bar Chart */}
           <div className="glass-panel sd-chart-card">
             <div className="panel-header">
@@ -613,6 +669,9 @@ export default function SmartDashboard() {
           --series-4: #c98500;
           --series-5: #d55181;
           --series-6: #9085e9;
+          --series-7: #06b6d4;
+          --series-8: #f97316;
+          --series-9: #a855f7;
           --series-other: var(--text-muted);
         }
 
@@ -623,6 +682,83 @@ export default function SmartDashboard() {
           --series-4: #eda100;
           --series-5: #e87ba4;
           --series-6: #4a3aa7;
+          --series-7: #0284c7;
+          --series-8: #ea580c;
+          --series-9: #9333ea;
+        }
+
+        .sd-approved-themes-dist-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1.25rem;
+          margin-top: 1rem;
+        }
+
+        .sd-theme-dist-card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          padding: 1.2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .sd-theme-dist-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .sd-theme-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 0.8rem;
+        }
+
+        .sd-theme-card-title {
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: var(--text-primary);
+          line-height: 1.3;
+        }
+
+        .sd-theme-card-districts {
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+        }
+
+        .sd-dist-rank-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.4rem 0.6rem;
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 6px;
+          font-size: 0.85rem;
+        }
+
+        .sd-dist-rank-num {
+          font-weight: 700;
+          font-size: 0.75rem;
+          color: var(--color-primary);
+          min-width: 24px;
+        }
+
+        .sd-dist-rank-name {
+          flex: 1;
+          color: var(--text-secondary);
+        }
+
+        .sd-dist-rank-name small {
+          color: var(--text-muted);
+        }
+
+        .sd-dist-rank-count {
+          font-weight: 600;
+          color: var(--text-primary);
         }
 
         .viz-header h1 { color: var(--text-primary); }
