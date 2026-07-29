@@ -188,11 +188,20 @@ export default function SmartDashboard() {
           count,
           top5Districts,
         };
-      })
+      });
+
+    // Prioritize approved themes for individual display; fold draft/unapproved themes into "Other themes"
+    const approvedThemesRanked = themeRanked
+      .filter((t) => t.status === 'Approved')
       .sort((a, b) => b.count - a.count);
 
-    const topThemes = themeRanked.slice(0, TOP_THEME_COUNT);
-    const otherCount = themeRanked.slice(TOP_THEME_COUNT).reduce((s, t) => s + t.count, 0);
+    const topThemes = approvedThemesRanked.slice(0, TOP_THEME_COUNT);
+    const nonTopApprovedCount = approvedThemesRanked.slice(TOP_THEME_COUNT).reduce((s, t) => s + t.count, 0);
+    const draftThemesCount = themeRanked
+      .filter((t) => t.status !== 'Approved')
+      .reduce((s, t) => s + t.count, 0);
+
+    const otherCount = nonTopApprovedCount + draftThemesCount;
 
     const districtRanked = Array.from(districtCounts.entries())
       .map(([idx, count]) => ({
